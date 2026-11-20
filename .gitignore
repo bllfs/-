@@ -1,0 +1,21 @@
+# Local editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local credentials and environment files
+.env
+.env.*
+*.pem
+*.key
+
+# Generated or temporary data
+node_modules/
+coverage/
+work/
+backups/
+*.log
+*.tmp
+*.zip

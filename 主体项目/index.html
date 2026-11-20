@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数控车削仿真</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand-icon" aria-hidden="true">◉</div>
+  <div class="brand"><h1>数控车削仿真 <span>TURNING LAB</span></h1><p>离线实验 · X 直径编程 · 刀具与材料扫掠</p></div>
+  <div class="header-right"><span class="pill">本地离线</span><button id="helpBtn" class="subtle">指令与规则</button></div>
+</header>
+<main class="workspace">
+<aside class="editor-panel panel">
+  <div class="panel-heading"><h2>程序工作区</h2><span class="small-label">NC EDITOR</span></div>
+  <div class="experiment-row"><label for="experimentSelect">实验工件</label><select id="experimentSelect"></select><a id="drawingLink" target="_blank" hidden>查看图纸</a></div>
+  <div class="example-row"><label class="sr-only" for="examples">示例程序</label><select id="examples"></select><button id="loadExample" title="载入选中的实验程序">载入</button></div>
+  <div class="editor-meta"><span>program.txt</span><span id="lineCount">0 行</span></div>
+  <div class="code-wrap"><div class="gutter" id="gutter" aria-hidden="true"></div><textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="数控程序编辑器" wrap="off"></textarea></div>
+  <div class="file-row"><button id="importBtn" class="subtle">导入程序</button><button id="exportBtn" class="subtle">导出 .txt</button><button id="saveImage" class="subtle">保存图像</button><input id="fileInput" type="file" accept=".txt,.mpf,.spf,.nc,.cnc" hidden></div>
+  <details class="setup" id="setup"><summary>毛坯与初始刀位 <span>单位 mm</span></summary><div class="settings-grid">
+    <label>毛坯直径 D<input id="diameter" type="number" min="5" max="120" step="1" value="30"></label>
+    <label>毛坯长度 L<input id="length" type="number" min="10" max="150" step="1" value="100"></label>
+    <label>左端夹持长度<input id="grip" type="number" min="5" max="140" step="1" value="12"></label>
+    <label>初始刀位 X（直径）<input id="startX" type="number" min="0" max="180" step="1" value="46"></label>
+    <label>初始刀位 Z<input id="startZ" type="number" min="-180" max="80" step="1" value="10"></label>
+    <div class="setting-note">Z0 在右端面<br>毛坯向 Z 负向延伸</div>
+  </div></details>
+  <details class="setup"><summary>刀具与工艺参数 <span>T1 / T2 / T3 / T4</span></summary><div class="tool-table"><table><thead><tr><th>刀具</th><th>S r/min</th><th>切深 / 余量 mm</th><th>f ≤</th></tr></thead><tbody><tr><td>T1 粗车</td><td>500–600</td><td>2ap≤5</td><td>0.3</td></tr><tr><td>T4 精车</td><td>600–800</td><td>2ap≤0.5</td><td>0.1</td></tr><tr><td>T2 槽宽3</td><td>350–450</td><td>精加工余量0.2</td><td>0.08</td></tr><tr><td>T3 螺纹</td><td>下方可调</td><td>可调</td><td>K×S</td></tr></tbody></table><p>T1/T4检查2ap；T2的0.2为直径精加工余量，粗槽可直接推到目标X。f 单位 mm/r。G94 也会换算为每转进给检查。</p></div><div class="settings-grid"><label>T3 最低转速<input id="threadMinS" type="number" min="1" max="6000" value="350"></label><label>T3 最高转速<input id="threadMaxS" type="number" min="1" max="6000" value="350"></label><label>T3 单刀 2ap 上限<input id="threadDepth" type="number" min="0.01" max="5" step="0.1" value="0.6"></label><div class="setting-note">螺纹轮廓角 60°<br>F 不控制 G33</div></div></details>
+<details class="setup"><summary>刀具几何 <span>mm / °</span></summary><div class="settings-grid"><label>T1 刀尖R (mm)<input id="t1Nose" type="number" step="0.01" value="0.5"></label><label>T1 刀尖角 (°)<input id="t1Angle" type="number" step="0.01" value="86"></label><label>T1 副偏角 (°)<input id="t1Relief" type="number" step="0.01" value="4"></label><label>T1 刀片轴向长度 (mm)<input id="t1Reach" type="number" step="0.01" value="8"></label><label>T1 刀片径向伸出 (mm)<input id="t1Projection" type="number" step="0.01" value="8"></label><label>T1 刀杆Z宽 (mm)<input id="t1HolderWidth" type="number" step="0.01" value="12"></label><label>T4 刀尖R (mm)<input id="t4Nose" type="number" step="0.01" value="0.5"></label><label>T4 刀尖角 (°)<input id="t4Angle" type="number" step="0.01" value="35"></label><label>T4 副偏角 (°)<input id="t4Relief" type="number" step="0.01" value="4"></label><label>T4 刀片轴向长度 (mm)<input id="t4Reach" type="number" step="0.01" value="8"></label><label>T4 刀片径向伸出 (mm)<input id="t4Projection" type="number" step="0.01" value="8"></label><label>T4 刀杆Z宽 (mm)<input id="t4HolderWidth" type="number" step="0.01" value="12"></label><label>T2 槽刀宽 (mm)<input id="t2Width" type="number" step="0.01" value="3"></label><label>T2 刃角R (mm)<input id="t2Nose" type="number" min="0" step="0.01" value="0"></label><label>T2 刀片径向伸出 (mm)<input id="t2Projection" type="number" step="0.01" value="18"></label><label>T2 刀杆Z宽 (mm)<input id="t2HolderWidth" type="number" step="0.01" value="12"></label><label>T3 刃部宽 (mm)<input id="t3Width" type="number" step="0.01" value="4"></label><label>T3 尖角 (°)<input id="t3Angle" type="number" step="0.01" value="60"></label><label>T3 径向伸出 (mm)<input id="t3Projection" type="number" step="0.01" value="12"></label><label>T3 刀杆Z宽 (mm)<input id="t3HolderWidth" type="number" step="0.01" value="10"></label><label>几何检查容差 (mm)<input id="geometryTolerance" type="number" step="0.01" value="0.035"></label><label>T2 Z坐标基准<select id="t2Reference"><option value="2">最左侧刃尖</option><option value="1">刀宽中心</option><option value="0">右侧刃尖</option></select></label><label>T2 侧刃轻修形<select id="t2SideCut"><option value="1">允许</option><option value="0">禁止</option></select></label><label>目标轮廓保护<select id="protectPart"><option value="1">启用</option><option value="0">关闭</option></select></label></div><p class="geometry-note">刀尖角、副偏角、刃宽与刃角半径决定刀片轮廓；刀杆尺寸按当前设置参与检查。程序与当前参数绑定，改参数后可重新生成。</p></details>
+  <button id="validateBtn" class="primary validate">检查程序</button>
+  <p class="editor-footer">修改程序或毛坯后，必须重新检查。</p>
+</aside>
+<section class="simulation-panel">
+  <div class="scene panel">
+    <div class="scene-heading"><div><span class="eyebrow">XZ PLANE / G18</span><h2><span id="sceneTitle">实验工件 · 侧视</span></h2></div><span id="stateBadge" class="state-badge">待检查</span></div>
+    <div class="canvas-wrap" id="canvasWrap"><canvas id="view" aria-label="毛坯、刀具和程序路径的二维动画"></canvas><div class="scene-caption"><span id="stockCaption">毛坯 Ø30 × 100</span><span>中心线：X0 · 端面：Z0</span></div></div>
+    <div class="legend"><span><i class="dash amber"></i>G00 快移</span><span><i class="cyan"></i>G01 直线</span><span><i class="blue"></i>G02 / G03 圆弧</span><span><i class="purple"></i>G33 螺纹</span><label><input type="checkbox" id="showPath">显示程序路径</label></div>
+    <div class="telemetry"><div><span>X · 直径</span><strong id="readX">46.000</strong><small>mm</small></div><div><span>Z · 轴向</span><strong id="readZ">10.000</strong><small>mm</small></div><div><span>指令 / 刀具</span><strong id="readMode">—</strong></div><div><span id="feedLabel">实际进给</span><strong id="readFeed">—</strong><small>mm/min</small></div><div><span>主轴 / 导程</span><strong id="readSpindle">—</strong></div></div>
+  </div>
+<section class="toolbox panel"><div class="toolbox-header"><h2>刀具侧视</h2><select id="toolPreviewChoice" aria-label="选择预览刀具"><option value="2">T2 槽刀</option><option value="1">T1 粗车刀</option><option value="4">T4 精车刀</option><option value="3">T3 尖头螺纹刀</option></select><button id="generateBtn">按刀具参数生成程序</button></div><canvas id="toolPreview" height="190" aria-label="实际尺寸刀片刀杆及坐标基准"></canvas><p id="toolInfo"></p></section>
+  <div class="playback panel"><div class="playback-buttons"><button id="playBtn" class="primary" disabled>播放仿真</button><button id="stepBtn" disabled>执行下一段</button><button id="resetBtn">复位</button><button id="finishBtn" disabled>查看成品</button></div><div class="speed-control"><label for="speed">播放倍率</label><select id="speed"><option value="1">1×</option><option value="5">5×</option><option value="20" selected>20×</option><option value="50">50×</option><option value="100">100×</option><option value="200">200×</option></select></div><div class="progress-row"><progress id="progress" max="1" value="0"></progress><span id="timeLabel">00:00 / 00:00</span><span id="progressLabel">0%</span></div><p id="currentLine">先检查程序，再播放刀具运动。</p></div>
+  <section class="diagnostics panel" aria-label="检查结果"><div class="diagnostic-heading"><h2>检查与运行信息</h2><span id="summary">等待检查</span></div><div id="messages" aria-live="polite"><div class="empty-message">准备好了吗？载入示例，点击「检查程序」开始。<small>错误会禁止运行；黄色提示需要结合实际工况判断。</small></div></div></section>
+</section>
+</main>
+<footer class="app-footer">XZ二维刀具包络演示；刀片、刀颈与刀杆按设置检查。实机仍需核对刀具尺寸、刀补、夹具与工件承接。</footer>
+<dialog id="helpDialog"><div class="dialog-heading"><h2>支持指令与演示边界</h2><button id="closeHelp" aria-label="关闭说明">关闭</button></div><div class="help-body"><p>采用G710公制、G18/G90/DIAMON；G95的F单位为mm/r，G97的S单位为r/min。支持G00/G01/G02/G03/G33、CR圆弧、T1–T4/D1、M03/M04/M05/M30/M02。</p><p>刀片、刀颈和刀杆来自统一刀具库，按设置的毫米轮廓检查材料及卡盘干涉。2ap表示直径方向切入量。T2粗槽一次进到目标深度后退出，0.2mm用于直径精加工余量。实验可以定义目标轮廓和额外的加工区域规则。</p><p>T1：S500–600、F≤0.3、2ap≤5；T4：S600–800、F≤0.1、2ap≤0.5；T2：S350–450、F≤0.08、直径精加工余量0.2mm。T3采用4mm尖头形、S350，尖角按设置值显示。</p><p>支持R0–R999算术赋值、SQRT/ABS/MAXVAL/MINVAL/TRUNC和有限REPEAT 标记 P=次数。P为追加重复次数；禁止嵌套或交叠重复，展开后仍逐段检查。表达式地址之间用空格分隔。</p><p id="experimentHelp"></p><p>程序中的N编号是程序段号，用于检索定位，不产生运动；没有跳转时可省略。文件统一导出为.txt。目标接触轮廓与刀具理论刀尖轨迹可能不同，生成程序时已计入相应刀尖圆弧偏置。</p><p>本工具进行二维XZ几何扫掠，不包含三维刀座、载荷、振动和工件掉落。机床刀具尺寸、对刀基准、刀补、夹具与工件承接需按实际设置核对。</p></div></dialog>
+<script src="刀具/tool-model.js"></script><script src="核心/program-flow.js"></script>
+<script src="核心/engine.js"></script><script src="实验/基础圆柱.js"></script><script src="../陀螺/workpiece.js"></script><script src="app.js"></script>
+</body></html>
